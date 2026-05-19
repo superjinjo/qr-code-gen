@@ -1,26 +1,5 @@
-const QUIET_ZONE_WIDTH = 4;
-const FINDER_SIZE = 7;
-
-// a "module" in this context is one square inside the QR code 
-// representing one bit of data or part of a pattern, I think of them as a "pixel"
-function modulesPerSide(version) {
-  return 21 + 4 * (version - 1);
-}
-
-function resizeCanvas(canvas, version) {
-  const width = modulesPerSide(version) + 2 * QUIET_ZONE_WIDTH;
-  canvas.width = width;
-  canvas.height = width;
-}
-
-// the quiet zone is a border of white space around the QR code
-function createQuietZone(canvas, version) {
-  const ctx = canvas.getContext("2d");
-  ctx.lineWidth = QUIET_ZONE_WIDTH;
-  ctx.strokeStyle = "white";
-  ctx.beginPath();
-  ctx.strokeRect(0, 0, canvas.width, canvas.height);
-}
+import { modulesPerSide, setPixelColor } from "./helpers.js";
+import { FINDER_SIZE } from "./constants.js";
 
 // "finders" are the three large squares in the corners
 function createFinders(canvas, version) {
@@ -40,17 +19,17 @@ function createFinders(canvas, version) {
   offscreenCtx.fillStyle = "black";
   offscreenCtx.fillRect(2, 2, FINDER_SIZE - 4, FINDER_SIZE - 4);
 
-  // todo: make less bad, probably also include white space with sprites
+  // todo: probably also include white space with sprites
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "green";
-  ctx.fillRect(QUIET_ZONE_WIDTH, QUIET_ZONE_WIDTH, FINDER_SIZE + 1, FINDER_SIZE + 1);
-  ctx.drawImage(offscreenCanvas, QUIET_ZONE_WIDTH, QUIET_ZONE_WIDTH);
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, FINDER_SIZE + 1, FINDER_SIZE + 1);
+  ctx.drawImage(offscreenCanvas, 0, 0);
 
-  ctx.fillRect(QUIET_ZONE_WIDTH, QUIET_ZONE_WIDTH + qrWidth - FINDER_SIZE - 1, FINDER_SIZE + 1, FINDER_SIZE + 1);
-  ctx.drawImage(offscreenCanvas, QUIET_ZONE_WIDTH, QUIET_ZONE_WIDTH + qrWidth - FINDER_SIZE);
+  ctx.fillRect(0, qrWidth - FINDER_SIZE - 1, FINDER_SIZE + 1, FINDER_SIZE + 1);
+  ctx.drawImage(offscreenCanvas, 0, qrWidth - FINDER_SIZE);
 
-  ctx.fillRect(QUIET_ZONE_WIDTH + qrWidth - FINDER_SIZE - 1, QUIET_ZONE_WIDTH, FINDER_SIZE + 1, FINDER_SIZE + 1);
-  ctx.drawImage(offscreenCanvas, QUIET_ZONE_WIDTH + qrWidth - FINDER_SIZE, QUIET_ZONE_WIDTH);
+  ctx.fillRect(qrWidth - FINDER_SIZE - 1, 0, FINDER_SIZE + 1, FINDER_SIZE + 1);
+  ctx.drawImage(offscreenCanvas, qrWidth - FINDER_SIZE, 0);
 }
 
 // The timing patterns are 2 lines of alternating white and black modules going between the finders.
@@ -58,19 +37,30 @@ function createFinders(canvas, version) {
 function createTiming(canvas, version) {
   const ctx = canvas.getContext("2d");
   const qrWidth = modulesPerSide(version);
+  const timingSize = qrWidth - (FINDER_SIZE + 1) * 2
 
-  ctx.beginPath();
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 1;
+  const horizontalTiming = ctx.createImageData(timingSize, 1);
+  const verticalTiming = ctx.createImageData(1, timingSize);
 
-  // the rest
+  for (let i = 0; i < timingSize; i++) {
+    const pixelDataStart = i * 4;
+    const color = i % 2 === 0 ? 0 : 255;
+
+    setPixelColor(horizontalTiming, pixelDataStart, color, color, color);
+    setPixelColor(verticalTiming, pixelDataStart, color, color, color);
+  }
+
+  ctx.putImageData(horizontalTiming, FINDER_SIZE + 1, FINDER_SIZE - 1);
+  ctx.putImageData(verticalTiming, FINDER_SIZE - 1, FINDER_SIZE + 1);
 }
 
-export function createPatternLayer(canvas, version) {
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  resizeCanvas(canvas, version);
+export function createPatternLayer(version) {
+  const canvas = document.createElement("canvas");
+  canvas.width = modulesPerSide(version);
+  canvas.height = modulesPerSide(version);
 
-  createQuietZone(canvas, version);
   createFinders(canvas, version);
+  createTiming(canvas, version);
+
+  return canvas;
 }

@@ -1,4 +1,6 @@
-import { createPatternLayer } from "./pattern.js";
+
+import { generateQRCode } from "./generate.js";
+
 
 function main() {
   console.log("Hello, World!");
@@ -10,7 +12,7 @@ function main() {
     version = parseInt(event.target.value);
     console.log("version: ", version);
     const canvas = document.getElementById("qr-canvas");
-    createPatternLayer(canvas, version);
+    generateQRCode(canvas, version);
   });
 }
 
