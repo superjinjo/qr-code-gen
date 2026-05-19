@@ -10,3 +10,13 @@ export function setPixelColor(imageData, startIndex, r, g, b, a = 255) {
   imageData.data[startIndex + 2] = b;
   imageData.data[startIndex + 3] = a;
 }
+
+export function getPixelColor(imageData, x, y) {
+  const index = (y * imageData.width + x) * 4;
+  return {
+    r: imageData.data[index],
+    g: imageData.data[index + 1],
+    b: imageData.data[index + 2],
+    a: imageData.data[index + 3],
+  };
+}
