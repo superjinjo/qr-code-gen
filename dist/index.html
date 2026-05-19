@@ -1,0 +1,27 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test QR Gen</title>
+    <style type="text/css">
+        #qr-canvas {
+            min-width: 200px;
+            min-height: 200px;
+            image-rendering: pixelated;
+            border: 2px solid green;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test QR Gen</h1>
+
+    <p>Canvas is below. Choose a version:</p>
+    <input type="number" id="version" min="1" max="40" value="1" />
+    <br />
+    <canvas id="qr-canvas" width="21" height="21"></canvas>
+    <script src="main.js" type="module"></script>
+</body>
+
+</html>
